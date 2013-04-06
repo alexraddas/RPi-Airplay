@@ -29,6 +29,9 @@ read ssid
 clear
 echo "SSID Password?"
 read ssidpassword
+confirm
+}
+confirm(){
 clear 
 echo "You are about to install AirPi with the following configuration," 
 echo "AirPi Name: $name"
@@ -40,7 +43,9 @@ case $option2 in
 restart) airpiinstall;;
 quit) menu;;
 next) continue;;
-*);;
+*)echo "Not a Valid Choice"
+sleep 1
+confirm;;
 esac
 }
 continue(){
