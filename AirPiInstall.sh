@@ -39,10 +39,10 @@ quit)menu;;
 esac
 clear
 echo "Changing SSID to $ssid"
-sed -i "4s/.*/ssid=\"$ssid\"/" /etc/wpa_supplicant/wpa_supplicant.conf
+sed -i "4s/.*/ssid=\"$ssid\"/" /etc/wpa_supplicant/airpi.conf
 sleep 1
 echo "Changing SSID Password to $ssidpassword"
-sed -i "7s/.*/psk=\"$ssidpassword\"/" /etc/wpa_supplicant/wpa_supplicant.conf
+sed -i "7s/.*/psk=\"$ssidpassword\"/" /etc/wpa_supplicant/airpi.conf
 sleep 1
 echo "Bringing Up WLAN0"
 ifup --force wlan0
@@ -120,13 +120,15 @@ make install
 cp shairport.init.sample /etc/init.d/shairport
 chmod a+x /etc/init.d/shairport
 update-rc.d shairport defaults
+cd /home/pi/AirPi/spidev
+python setup.py install
 cp /home/pi/AirPi/config/asound.conf /etc
-cp /home/pi/AirPi/config/wpa_supplicant.conf /etc/wpa_supplicant
+cp /home/pi/AirPi/config/airpi.conf /etc/wpa_supplicant
 cp /home/pi/AirPi/config/interfaces /etc/network
 mkdir /etc/airpi
 cp -r /home/pi/AirPi/scripts /etc/airpi
-sed -i "4s/.*/ssid=\"$ssid\"/" /etc/wpa_supplicant/wpa_supplicant.conf
-sed -i "7s/.*/psk=\"$ssidpassword\"/" /etc/wpa_supplicant/wpa_supplicant.conf
+sed -i "4s/.*/ssid=\"$ssid\"/" /etc/wpa_supplicant/airpi.conf
+sed -i "7s/.*/psk=\"$ssidpassword\"/" /etc/wpa_supplicant/airpi.conf
 sed -i 's/blacklist spi-bcm2708/#blacklist spi-bcm2708/g' /etc/modprobe.d/raspi-blacklist.conf
 sed -i "22s/.*/DAEMON_ARGS=\"-w \$PIDFILE -a $name\"/" /etc/init.d/shairport
 typeset -i count
