@@ -1,7 +1,7 @@
 menu(){
-airpiname=$(grep name: /etc/airpi/config | awk 'BEGIN {FS=":"} {print $2}')
-airpissid=$(grep ssid: /etc/airpi/config | awk 'BEGIN {FS=":"} {print $2}')
-airpissidpassword=$(grep ssid: /etc/airpi/config | awk 'BEGIN {FS=":"} {print $3}')
+airpiname=$(grep DAEMON_ARGS= /etc/init.d/shairport | awk 'BEGIN {FS=" "} {print $4}' | awk 'BEGIN {FS="\""} {print $1}')
+airpissid=$(grep ssid=\" /etc/wpa_supplicant/wpa_supplicant.conf | awk 'BEGIN {FS="\""}{print $2}')
+airpissidpassword=$(grep psk=\" /etc/wpa_supplicant/wpa_supplicant.conf | awk 'BEGIN {FS="\""}{print $2}')
 clear
 echo "What would you like to do?"
 echo "1: Install AirPi"
@@ -48,6 +48,30 @@ echo "Bringing Up WLAN0"
 ifup --force wlan0
 menu
 }
+
+airpichangename(){
+clear
+echo "AirPi Name?"
+read name
+clear
+echo "Change AirPi Name from $airpiname to $name ?"
+echo -n "Choice(yes/no/quit):"
+read option4
+case $option4 in
+yes) ;;
+no)airpichangename;;
+quit)menu;;
+*)echo
+esac
+clear
+echo "Changing AirPi Name to $name"
+sed -i "22s/.*/DAEMON_ARGS=\"-w \$PIDFILE -a $name\"/" /etc/init.d/shairport
+service shairport stop
+service shairport start
+sleep 1
+menu
+}
+
 airpiinstall(){
 clear
 echo "Name Your AirPi?"
@@ -60,6 +84,7 @@ echo "SSID Password?"
 read ssidpassword
 confirm
 }
+
 confirm(){
 clear 
 echo "You are about to install AirPi with the following configuration," 
@@ -77,12 +102,13 @@ sleep 1
 confirm;;
 esac
 }
+
 continue(){
 apt-get update
 apt-get install git
 git clone https://github.com/alexraddas/RPi-Airplay /home/pi/AirPi
 cd /home/pi/AirPi
-apt-get -y install libcrypt-ssleay-perl wpasupplicant libao-dev libssl-dev libcrypt-openssl-rsa-perl libio-socket-inet6-perl libwww-perl avahi-utils
+apt-get -y install python-dev libcrypt-ssleay-perl wpasupplicant libao-dev libssl-dev libcrypt-openssl-rsa-perl libio-socket-inet6-perl libwww-perl avahi-utils
 cd /home/pi/AirPi/perl
 perl Build.PL
 ./Build
@@ -98,14 +124,20 @@ cp /home/pi/AirPi/config/asound.conf /etc
 cp /home/pi/AirPi/config/wpa_supplicant.conf /etc/wpa_supplicant
 cp /home/pi/AirPi/config/interfaces /etc/network
 mkdir /etc/airpi
-mkdir /etc/airpi/scripts
-cp -r /home/pi/Airpi/scripts /etc/airpi/scripts
+cp -r /home/pi/AirPi/scripts /etc/airpi
 sed -i "4s/.*/ssid=\"$ssid\"/" /etc/wpa_supplicant/wpa_supplicant.conf
 sed -i "7s/.*/psk=\"$ssidpassword\"/" /etc/wpa_supplicant/wpa_supplicant.conf
 sed -i 's/blacklist spi-bcm2708/#blacklist spi-bcm2708/g' /etc/modprobe.d/raspi-blacklist.conf
-sed -i '22s/.*/DAEMON_ARGS="-w $PIDFILE -a $name"/' /etc/init.d/shairport
-sed -i "100s%.*%/etc/airpi/scripts/volume.sh" /etc/rc.local
-sed -i "100s%.*%/etc/airpi/scripts/wifiup.sh" /etc/rc.local  
+sed -i "22s/.*/DAEMON_ARGS=\"-w \$PIDFILE -a $name\"/" /etc/init.d/shairport
+typeset -i count
+count=$(wc -l /etc/rc.local | awk 'BEGIN {FS=" "}{print $1}')
+while [ "$count" -le 101 ]
+do
+echo " " >> /etc/rc.local
+((count++))
+done
+sed -i "100s%.*%/etc/airpi/scripts/volume.py%" /etc/rc.local
+sed -i "101s%.*%/etc/airpi/scripts/wifiup.sh%" /etc/rc.local  
 echo "Your Pi Will Reboot in 60 Seconds"
 sleep 60
 reboot
