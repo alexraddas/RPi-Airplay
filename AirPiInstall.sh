@@ -108,7 +108,7 @@ apt-get update
 apt-get install git
 git clone https://github.com/alexraddas/RPi-Airplay /home/pi/AirPi
 cd /home/pi/AirPi
-apt-get -y install python-dev libcrypt-ssleay-perl wpasupplicant libao-dev libssl-dev libcrypt-openssl-rsa-perl libio-socket-inet6-perl libwww-perl avahi-utils
+apt-get install -y python-dev libcrypt-ssleay-perl wpasupplicant libao-dev libssl-dev libcrypt-openssl-rsa-perl libio-socket-inet6-perl libwww-perl avahi-utils
 cd /home/pi/AirPi/perl
 perl Build.PL
 ./Build
