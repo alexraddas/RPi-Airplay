@@ -1,13 +1,14 @@
+menu(){
 airpiname=$(grep name: /etc/airpi/config | awk 'BEGIN {FS=":"} {print $2}')
 airpissid=$(grep ssid: /etc/airpi/config | awk 'BEGIN {FS=":"} {print $2}')
 airpissidpassword=$(grep ssid: /etc/airpi/config | awk 'BEGIN {FS=":"} {print $3}')
-menu(){
 clear
 echo "What would you like to do?"
 echo "1: Install AirPi"
 echo "2: Change SSID Association (Current SSID Name:$airpissid Current SSID Password:$airpissidpassword)"
 echo "3: Change AirPi Name (Current Name:$airpiname)"
 echo "4: Exit"
+echo -n "Choice:"
 read option
 case $option in
 1) airpiinstall;;
@@ -18,6 +19,34 @@ case $option in
 sleep 1
 menu;;
 esac
+}
+airpichangessid(){
+clear
+echo "SSID for AirPi?"
+read ssid
+clear
+echo "SSID Password?"
+read ssidpassword
+echo "Change SSID from $airpissid to $ssid ?"
+echo "Change SSID Password from $airpissidpassword to $ssidpassword?"
+echo -n "Choice(yes/no/quit):"
+read option3
+case $option3 in
+yes) ;;
+no)airpichangessid;;
+quit)menu;;
+*)echo
+esac
+clear
+echo "Changing SSID to $ssid"
+sed -i "4s/.*/ssid=\"$ssid\"/" /etc/wpa_supplicant/wpa_supplicant.conf
+sleep 1
+echo "Changing SSID Password to $ssidpassword"
+sed -i "7s/.*/psk=\"$ssidpassword\"/" /etc/wpa_supplicant/wpa_supplicant.conf
+sleep 1
+echo "Bringing Up WLAN0"
+ifup --force wlan0
+menu
 }
 airpiinstall(){
 clear
@@ -50,7 +79,6 @@ esac
 }
 continue(){
 apt-get update
-apt-get -y upgrade
 apt-get install git
 git clone https://github.com/alexraddas/RPi-Airplay /home/pi/AirPi
 cd /home/pi/AirPi
@@ -67,7 +95,19 @@ cp shairport.init.sample /etc/init.d/shairport
 chmod a+x /etc/init.d/shairport
 update-rc.d shairport defaults
 cp /home/pi/AirPi/config/asound.conf /etc
-cp /home/pi/AirPi/config/wpa_supplicant.conf /etc/wpa-supplicant
+cp /home/pi/AirPi/config/wpa_supplicant.conf /etc/wpa_supplicant
 cp /home/pi/AirPi/config/interfaces /etc/network
+mkdir /etc/airpi
+mkdir /etc/airpi/scripts
+cp -r /home/pi/Airpi/scripts /etc/airpi/scripts
+sed -i "4s/.*/ssid=\"$ssid\"/" /etc/wpa_supplicant/wpa_supplicant.conf
+sed -i "7s/.*/psk=\"$ssidpassword\"/" /etc/wpa_supplicant/wpa_supplicant.conf
+sed -i 's/blacklist spi-bcm2708/#blacklist spi-bcm2708/g' /etc/modprobe.d/raspi-blacklist.conf
+sed -i '22s/.*/DAEMON_ARGS="-w $PIDFILE -a $name"/' /etc/init.d/shairport
+sed -i "100s%.*%/etc/airpi/scripts/volume.sh" /etc/rc.local
+sed -i "100s%.*%/etc/airpi/scripts/wifiup.sh" /etc/rc.local  
+echo "Your Pi Will Reboot in 60 Seconds"
+sleep 60
+reboot
 }
 menu
