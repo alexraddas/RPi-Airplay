@@ -105,7 +105,7 @@ esac
 
 continue(){
 apt-get update
-apt-get install git
+apt-get install -y git
 git clone https://github.com/alexraddas/RPi-Airplay /home/pi/AirPi
 cd /home/pi/AirPi
 apt-get install -y python-dev libcrypt-ssleay-perl wpasupplicant libao-dev libssl-dev libcrypt-openssl-rsa-perl libio-socket-inet6-perl libwww-perl avahi-utils
