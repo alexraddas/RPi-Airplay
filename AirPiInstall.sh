@@ -7,19 +7,22 @@ echo "What would you like to do?"
 echo "1: Install AirPi"
 echo "2: Change SSID Association (Current SSID Name:$airpissid Current SSID Password:$airpissidpassword)"
 echo "3: Change AirPi Name (Current Name:$airpiname)"
-echo "4: Exit"
+echo "4: Enable/Disable USB Sound Card"
+echo "5: Exit"
 echo -n "Choice:"
 read option
 case $option in
 1) airpiinstall;;
 2) airpichangessid;;
 3) airpichangename;;
-4) exit 0;;
+4) audiochange;;
+5) exit 0;;
 *) echo "Not A Valid Option"
 sleep 1
 menu;;
 esac
 }
+
 airpichangessid(){
 clear
 echo "SSID for AirPi?"
@@ -122,11 +125,11 @@ chmod a+x /etc/init.d/shairport
 update-rc.d shairport defaults
 cd /home/pi/AirPi/spidev
 python setup.py install
-cp /home/pi/AirPi/config/asound.conf /etc
-cp /home/pi/AirPi/config/airpi.conf /etc/wpa_supplicant
-cp /home/pi/AirPi/config/interfaces /etc/network
 mkdir /etc/airpi
 cp -r /home/pi/AirPi/scripts /etc/airpi
+cp -r /home/pi/AirPi/config /etc/airpi
+cp /etc/airpi/config/airpi.conf /etc/wpa_supplicant
+cp /etc/airpi/config/interfaces /etc/network
 sed -i "4s/.*/ssid=\"$ssid\"/" /etc/wpa_supplicant/airpi.conf
 sed -i "7s/.*/psk=\"$ssidpassword\"/" /etc/wpa_supplicant/airpi.conf
 sed -i 's/blacklist spi-bcm2708/#blacklist spi-bcm2708/g' /etc/modprobe.d/raspi-blacklist.conf
@@ -143,5 +146,40 @@ sed -i "101s%.*%nohup ./etc/airpi/scripts/wifiup.sh 0<\&- \&>/dev/null \&%" /etc
 echo "Your Pi Will Reboot in 60 Seconds"
 sleep 60
 reboot
+}
+
+audiochange(){
+clear
+echo "Enable or Disable USB sound card?"
+echo -n "Choice (enable/disable/quit):"
+read option5
+case $option5 in
+enable)
+echo "Enabling USB Sound Card"
+sleep 2
+sed -i 's/options snd-usb-audio index=-2/#options snd-usb-audio index=-2/g' /etc/modprobe.d/alsa-base.conf
+sed -i 's/#options snd_bcm2835=-2/options snd_bcm2835=-2/g' /etc/modprobe.d/alsa-base.conf
+cp /etc/airpi/config/asound.conf /etc
+service alsa-utils stop
+service alsa-utils start
+service shairport stop
+service shairport start
+menu;;
+disable)
+echo "Disabling USB Sound Card"
+sleep 2
+sed -i 's/#options snd-usb-audio index=-2/options snd-usb-audio index=-2/g' /etc/modprobe.d/alsa-base.conf
+sed -i 's/options snd_bcm2835=-2/#options snd_bcm2835=-2/g' /etc/modprobe.d/alsa-base.conf
+rm -rf /etc/asound.conf
+service alsa-utils stop
+service alsa-utils start
+service shairport stop
+service shairport start
+menu;;
+quit) menu;;
+*)echo "Not a Valid Choice"
+sleep 1
+audiochange;;
+esac
 }
 menu
