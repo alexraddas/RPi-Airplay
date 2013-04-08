@@ -43,12 +43,12 @@ while True:
                 print "trim_pot_changed", trim_pot_changed
 
         if ( trim_pot_changed ):
-                set_volume = ((trim_pot / 10.24)-20)      # convert 10bit adc0 (0-1024) trim pot read into 0-100 volume level
+                set_volume = (trim_pot / 10.24)      # convert 10bit adc0 (0-1024) trim pot read into 0-100 volume level
                 set_volume = round(set_volume)          # round out decimal value
                 set_volume = int(set_volume)            # cast volume as integer
 
                 print 'Volume = {volume}%' .format(volume = set_volume)
-                set_vol_cmd = 'sudo amixer cset numid=2 -- {volume}% > /dev/null' .format(volume = set_volume)
+                set_vol_cmd = 'sudo amixer set PCM -- {volume}% > /dev/null' .format(volume = set_volume)
                 os.system(set_vol_cmd)  # set volume
 
 
