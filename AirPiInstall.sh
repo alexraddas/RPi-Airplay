@@ -141,8 +141,10 @@ do
 echo " " >> /etc/rc.local
 ((count++))
 done
-sed -i "100s%.*%nohup python /etc/airpi/scripts/volume.py >/dev/null 2>\&1\&%" /etc/rc.local
-sed -i "101s%.*%nohup ./etc/airpi/scripts/wifiup.sh >/dev/null 2>\&1\&%" /etc/rc.local  
+sed -i "s/exit 0//g" /etc/rc.local
+sed -i "99s%.*%nohup python /etc/airpi/scripts/volume.py >/dev/null 2>\&1\&%" /etc/rc.local
+sed -i "100s%.*%nohup ./etc/airpi/scripts/wifiup.sh >/dev/null 2>\&1\&%" /etc/rc.local  
+sed -i "101s%.*%exit 0%" /etc/rc.local
 echo "Your Pi Will Reboot in 60 Seconds"
 sleep 60
 reboot
