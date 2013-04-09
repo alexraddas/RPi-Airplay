@@ -162,10 +162,15 @@ sleep 2
 sed -i 's/options snd-usb-audio index=-2/#options snd-usb-audio index=-2/g' /etc/modprobe.d/alsa-base.conf
 sed -i 's/#options snd_bcm2835=-2/options snd_bcm2835=-2/g' /etc/modprobe.d/alsa-base.conf
 cp /etc/airpi/config/asound.conf /etc
-sed -i "s&set_vol_cmd = 'sudo amixer set PCM -- {volume}% > /dev/null' .format(volume = set_volume)&set_vol_cmd = 'sudo amixer cset numid=2 -- {volume}% > /dev/null' .format(volume = set_volume)&g" /etc/airpi/scripts/volume.py
-service alsa-utils stop
-service alsa-utils start
 service shairport stop
+service alsa-utils stop
+kill -9 $(ps aux | grep 'volume.py' | awk '{print $2}')
+modprobe -r snd_bcm2835
+modprobe  snd-usb-audio
+sed -i "s&set_vol_cmd = 'sudo amixer set PCM -- {volume}% > /dev/null' .format(volume = set_volume)&set_vol_cmd = 'sudo amixer cset numid=2 -- {volume}% > /dev/null' .format(volume = set_volume)&g" /etc/airpi/scripts/volume.py
+alsa force-reload
+service alsa-utils start
+nohup python /etc/airpi/scripts/volume.py >/dev/null 2>&1&
 service shairport start
 menu;;
 disable)
@@ -174,10 +179,15 @@ sleep 2
 sed -i 's/#options snd-usb-audio index=-2/options snd-usb-audio index=-2/g' /etc/modprobe.d/alsa-base.conf
 sed -i 's/options snd_bcm2835=-2/#options snd_bcm2835=-2/g' /etc/modprobe.d/alsa-base.conf
 rm -rf /etc/asound.conf
-sed -i "s&set_vol_cmd = 'sudo amixer cset numid=2 -- {volume}% > /dev/null' .format(volume = set_volume)&set_vol_cmd = 'sudo amixer set PCM -- {volume}% > /dev/null' .format(volume = set_volume)&g" /etc/airpi/scripts/volume.py
-service alsa-utils stop
-service alsa-utils start
 service shairport stop
+service alsa-utils stop
+kill -9 $(ps aux | grep 'volume.py' | awk '{print $2}')
+modprobe -r snd-usb-audio
+modprobe snd_bcm2835
+sed -i "s&set_vol_cmd = 'sudo amixer cset numid=2 -- {volume}% > /dev/null' .format(volume = set_volume)&set_vol_cmd = 'sudo amixer set PCM -- {volume}% > /dev/null' .format(volume = set_volume)&g" /etc/airpi/scripts/volume.py
+alsa force-reload
+service alsa-utils start
+nohup python /etc/airpi/scripts/volume.py >/dev/null 2>&1&
 service shairport start
 menu;;
 quit) menu;;
